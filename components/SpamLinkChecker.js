@@ -113,7 +113,7 @@ const SpamLinkChecker = () => {
             </div>
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-                SecureLink AI
+                Jan Suraksha
               </h1>
               <p className="text-slate-400 text-sm">AI-powered URL security analysis</p>
             </div>
@@ -282,7 +282,7 @@ const SpamLinkChecker = () => {
         <div className="max-w-7xl mx-auto px-4 py-12 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Shield className="w-5 h-5 text-slate-400" />
-            <span className="text-slate-300 font-medium">SecureLink AI</span>
+            <span className="text-slate-300 font-medium">Jan Suraksha</span>
           </div>
           <p className="text-slate-400 max-w-2xl mx-auto">
             Stay protected online. Always verify suspicious links and never share sensitive information on untrusted websites.
