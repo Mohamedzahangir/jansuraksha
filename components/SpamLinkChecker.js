@@ -50,6 +50,13 @@ const SpamLinkChecker = () => {
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!loading) {
+      analyzeUrl();
+    }
+  };
+
   const getStatusIcon = (status) => {
     switch (status) {
       case 'safe':
@@ -135,53 +142,66 @@ const SpamLinkChecker = () => {
 
         {/* Input Section */}
         <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-slate-800/50 p-8 mb-8 shadow-2xl">
-          <h3 className="text-xl font-semibold mb-6 text-slate-200">Enter URL for Analysis</h3>
+          <h3 id="url-form-title" className="text-xl font-semibold mb-6 text-slate-200">Enter URL for Analysis</h3>
           
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="relative group">
-              <ExternalLink className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-slate-300 transition-colors" />
+              <ExternalLink aria-hidden="true" className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-slate-300 transition-colors" />
               <input
+                id="url-input"
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://suspicious-link.com"
-                className="w-full pl-12 pr-4 py-4 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-600 focus:border-slate-600 transition-all duration-300 hover:bg-slate-800/70"
-                onKeyPress={(e) => e.key === 'Enter' && !loading && analyzeUrl()}
+                aria-labelledby="url-form-title"
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? 'url-error' : undefined}
+                className="w-full pl-12 pr-4 py-4 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:border-slate-500 transition-all duration-300 hover:bg-slate-800/70"
               />
             </div>
             
             {error && (
-              <div className="flex items-center gap-2 p-4 bg-red-950/30 border border-red-800/50 rounded-lg">
-                <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
+              <div id="url-error" role="alert" className="flex items-center gap-2 p-4 bg-red-950/30 border border-red-800/50 rounded-lg">
+                <AlertTriangle aria-hidden="true" className="w-5 h-5 text-red-400 flex-shrink-0" />
                 <p className="text-red-300 text-sm">{error}</p>
               </div>
             )}
+
+            <div className="sr-only" aria-live="polite" aria-atomic="true">
+              {loading && 'Analyzing URL, please wait.'}
+            </div>
             
             <button
-              onClick={analyzeUrl}
+              type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 disabled:from-slate-800 disabled:to-slate-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none"
+              aria-busy={loading}
+              className="w-full bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 disabled:from-slate-800 disabled:to-slate-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
             >
               {loading ? (
                 <>
-                  <Loader className="w-5 h-5 animate-spin" />
+                  <Loader aria-hidden="true" className="w-5 h-5 animate-spin" />
                   <span>Analyzing URL...</span>
                 </>
               ) : (
                 <>
-                  <Zap className="w-5 h-5" />
+                  <Zap aria-hidden="true" className="w-5 h-5" />
                   <span>Analyze URL Security</span>
                 </>
               )}
             </button>
-          </div>
+          </form>
         </div>
 
         {/* Results Section */}
         {result && (
-          <div className={`bg-slate-900/40 backdrop-blur-xl rounded-2xl border ${getStatusColor(result.status)} p-8 shadow-2xl transform transition-all duration-500 animate-fadeIn`}>
+          <div
+            role="region"
+            aria-live="polite"
+            aria-label={`Analysis results: ${getStatusText(result.status)}, ${result.confidence}% confidence`}
+            className={`bg-slate-900/40 backdrop-blur-xl rounded-2xl border ${getStatusColor(result.status)} p-8 shadow-2xl transform transition-all duration-500 animate-fadeIn`}
+          >
             {/* Status Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between mb-8">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
                   {getStatusIcon(result.status)}
@@ -197,7 +217,7 @@ const SpamLinkChecker = () => {
               </div>
               
               {/* Confidence Score */}
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 <div className="text-2xl font-bold text-white mb-1">
                   {result.confidence}%
                 </div>
