@@ -15,6 +15,8 @@
   --color-surface: #16181C;
   --color-surface-raised: #1E2126;
   --color-text-secondary: #8B949E;
+  --color-safe: #3FB07F;
+  --color-danger: #D9594C;
 }
 
 body {

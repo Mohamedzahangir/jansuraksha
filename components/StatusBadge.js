@@ -1,77 +1,66 @@
-import { Shield, AlertTriangle, CheckCircle, Eye } from 'lucide-react';
+import { Shield, AlertTriangle, CheckCircle } from 'lucide-react';
+
+const STATUS_STYLES = {
+  safe: {
+    border: 'border-safe/20',
+    bg: 'bg-safe/10',
+    icon: <CheckCircle aria-hidden="true" className="w-5 h-5 text-safe" />,
+    bar: 'bg-safe',
+    label: 'Safe',
+  },
+  suspicious: {
+    border: 'border-amber/20',
+    bg: 'bg-amber/10',
+    icon: <AlertTriangle aria-hidden="true" className="w-5 h-5 text-amber" />,
+    bar: 'bg-amber',
+    label: 'Suspicious',
+  },
+  dangerous: {
+    border: 'border-danger/20',
+    bg: 'bg-danger/10',
+    icon: <Shield aria-hidden="true" className="w-5 h-5 text-danger" />,
+    bar: 'bg-danger',
+    label: 'Dangerous',
+  },
+};
 
 export const getStatusColor = (status) => {
-  switch (status) {
-    case 'safe':
-      return 'border-emerald-200/50 bg-emerald-950/20';
-    case 'suspicious':
-      return 'border-amber-200/50 bg-amber-950/20';
-    case 'dangerous':
-      return 'border-red-200/50 bg-red-950/20';
-    default:
-      return 'border-slate-700 bg-slate-800/20';
-  }
+  const style = STATUS_STYLES[status];
+  return style ? `${style.border} ${style.bg}` : 'border-white/10 bg-surface';
 };
 
 export const getStatusText = (status) => {
-  switch (status) {
-    case 'safe':
-      return 'Safe';
-    case 'suspicious':
-      return 'Suspicious';
-    case 'dangerous':
-      return 'Dangerous';
-    default:
-      return 'Unknown';
-  }
+  const style = STATUS_STYLES[status];
+  return style ? style.label : 'Unknown';
 };
 
-const getStatusIcon = (status) => {
-  switch (status) {
-    case 'safe':
-      return <CheckCircle aria-hidden="true" className="w-6 h-6 text-emerald-500" />;
-    case 'suspicious':
-      return <AlertTriangle aria-hidden="true" className="w-6 h-6 text-amber-500" />;
-    case 'dangerous':
-      return <Shield aria-hidden="true" className="w-6 h-6 text-red-500" />;
-    default:
-      return <Eye aria-hidden="true" className="w-6 h-6 text-slate-400" />;
-  }
-};
+const StatusBadge = ({ status, confidence }) => {
+  const style = STATUS_STYLES[status] || STATUS_STYLES.safe;
 
-const getConfidenceBarColor = (status) => {
-  if (status === 'safe') return 'bg-emerald-500';
-  if (status === 'suspicious') return 'bg-amber-500';
-  if (status === 'dangerous') return 'bg-red-500';
-  return 'bg-slate-500';
-};
-
-const StatusBadge = ({ status, confidence, subtitle = 'Security Analysis Complete' }) => {
   return (
-    <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between mb-8">
-      <div className="flex items-center gap-4">
-        <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
-          {getStatusIcon(status)}
+    <div className="flex items-center justify-between mb-6 pb-5 border-b border-white/5">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-surface-raised rounded-lg border border-white/5">
+          {style.icon}
         </div>
         <div>
-          <h3 className="text-2xl font-display font-bold text-white tracking-tight">
-            {getStatusText(status)}
+          <h3 className="text-xl font-display font-bold text-white tracking-tight">
+            {style.label}
           </h3>
-          <p className="text-text-secondary text-sm">{subtitle}</p>
+          <p className="text-text-secondary text-xs">Security verdict</p>
         </div>
       </div>
 
-      <div className="text-left sm:text-right">
-        <div className="text-2xl font-bold text-white mb-1">
-          {confidence}%
+      <div className="text-right">
+        <div className="text-xl font-display font-bold text-white tracking-tight">
+          {confidence}<span className="text-text-secondary text-sm font-sans font-normal">%</span>
         </div>
-        <div className="w-24 h-2 bg-slate-700 rounded-full overflow-hidden">
+        <div className="w-20 h-1 bg-white/10 rounded-full overflow-hidden mt-1">
           <div
-            className={`h-full ${getConfidenceBarColor(status)} transition-all duration-1000`}
+            className={`h-full ${style.bar} transition-all duration-1000 rounded-full`}
             style={{ width: `${confidence}%` }}
           />
         </div>
-        <p className="text-xs text-slate-400 mt-1">Confidence</p>
       </div>
     </div>
   );
