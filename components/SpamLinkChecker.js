@@ -8,18 +8,18 @@ import FeatureCard from './FeatureCard';
 const FEATURES = [
   {
     icon: Shield,
-    title: 'AI-Powered Detection',
-    description: 'Advanced machine learning algorithms analyze URLs for potential threats and malicious patterns',
+    title: 'Pattern Recognition',
+    description: 'Every link is checked against known phishing patterns, domain anomalies, and deceptive redirect chains.',
   },
   {
     icon: Globe,
-    title: 'Real-time Analysis',
-    description: 'Instant security assessments with comprehensive threat intelligence and risk scoring',
+    title: 'Instant Verdict',
+    description: 'Results in seconds with a clear Safe, Suspicious, or Dangerous rating — and why.',
   },
   {
     icon: Lock,
-    title: 'Comprehensive Scanning',
-    description: 'Multi-layered security checks including domain reputation, SSL analysis, and pattern detection',
+    title: 'Deep Inspection',
+    description: 'Beyond the surface: domain reputation, SSL validity, and link structure are all examined.',
   },
 ];
 
@@ -128,9 +128,9 @@ const SpamLinkChecker = () => {
             </div>
 
             {error && (
-              <div id="url-error" role="alert" className="flex items-center gap-2 p-4 bg-red-950/30 border border-red-800/50 rounded-lg">
-                <AlertTriangle aria-hidden="true" className="w-5 h-5 text-red-400 flex-shrink-0" />
-                <p className="text-red-300 text-sm">{error}</p>
+              <div id="url-error" role="alert" className="flex items-center gap-2 p-3 bg-danger/10 border border-danger/20 rounded-lg">
+                <AlertTriangle aria-hidden="true" className="w-4 h-4 text-danger flex-shrink-0" />
+                <p className="text-xs text-white/70">{error}</p>
               </div>
             )}
 
@@ -214,7 +214,7 @@ const SpamLinkChecker = () => {
         )}
 
         {/* Features Grid */}
-        <div className="mt-20 grid md:grid-cols-3 gap-8">
+        <div className="mt-16 grid md:grid-cols-3 gap-4">
           {FEATURES.map((feature) => (
             <FeatureCard
               key={feature.title}
