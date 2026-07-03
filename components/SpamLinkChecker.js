@@ -77,49 +77,42 @@ const SpamLinkChecker = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black text-white">
-      {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-slate-800/10 rounded-full blur-3xl bg-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-slate-700/10 rounded-full blur-3xl bg-pulse delay-1000" />
-      </div>
-
+    <div className="min-h-screen bg-background text-white">
       {/* Header */}
-      <header className="relative border-b border-slate-800/50 bg-slate-900/30 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-4">
-            <div className="p-2 bg-slate-800/50 rounded-xl border border-slate-700/50">
-              <Shield className="w-8 h-8 text-slate-300" />
+      <header className="border-b border-white/5 bg-surface">
+        <div className="max-w-5xl mx-auto px-6 py-5">
+          <div className="flex items-center gap-3">
+            <div className="p-1.5 bg-white/5 rounded-lg border border-white/10">
+              <Shield className="w-6 h-6 text-amber" />
             </div>
             <div>
-              <h1 className="text-3xl font-display font-bold text-white tracking-tight">
+              <h1 className="text-xl font-display font-bold text-white tracking-tight">
                 Jan Suraksha
               </h1>
-              <p className="text-text-secondary text-sm tracking-wide uppercase">check before you click</p>
+              <p className="text-text-secondary text-xs tracking-widest uppercase">check before you click</p>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="relative max-w-5xl mx-auto px-4 py-12">
+      <main className="max-w-2xl mx-auto px-6 pt-16 pb-24">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl sm:text-5xl font-display font-bold text-white tracking-tight leading-none mb-4">
+        <div className="text-center mb-10">
+          <h2 className="text-4xl sm:text-5xl font-display font-bold text-white tracking-tight leading-none mb-3">
             Check any link<br />before you click
           </h2>
-          <p className="text-text-secondary text-base max-w-xl mx-auto leading-relaxed">
-            Paste a suspicious URL and get an instant security verdict — not a guess.
+          <p className="text-text-secondary text-sm max-w-md mx-auto leading-relaxed">
+            Paste a URL and get an instant security verdict — not a guess.
           </p>
         </div>
 
         {/* Input Section */}
-        <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-slate-800/50 p-4 sm:p-8 mb-8 shadow-2xl">
-          <h3 id="url-form-title" className="text-lg font-display font-semibold text-white tracking-wide">Enter a URL to check</h3>
-
+        <div className="rounded-2xl border border-white/10 bg-surface p-6 mb-6">
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="relative group">
-              <ExternalLink aria-hidden="true" className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-slate-300 transition-colors" />
+              <h3 id="url-form-title" className="sr-only">Enter a URL to check</h3>
+              <ExternalLink aria-hidden="true" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary group-focus-within:text-amber transition-colors" />
               <input
                 id="url-input"
                 type="url"
@@ -129,8 +122,9 @@ const SpamLinkChecker = () => {
                 aria-labelledby="url-form-title"
                 aria-invalid={error ? true : undefined}
                 aria-describedby={error ? 'url-error' : undefined}
-                className="w-full pl-12 pr-4 py-4 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:border-slate-500 transition-all duration-300 hover:bg-slate-800/70"
+                className="w-full pl-10 pr-4 py-3.5 bg-surface-raised border border-white/10 rounded-lg text-white placeholder-text-secondary/50 text-sm focus:outline-none focus-visible:ring-1 focus-visible:ring-amber focus-visible:border-amber/50 transition-all duration-200"
               />
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber/40 to-transparent opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none" aria-hidden="true" />
             </div>
 
             {error && (
@@ -148,17 +142,17 @@ const SpamLinkChecker = () => {
               type="submit"
               disabled={loading}
               aria-busy={loading}
-              className="w-full bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 disabled:from-slate-800 disabled:to-slate-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+              className="w-full bg-amber hover:bg-amber/90 disabled:bg-white/10 text-background disabled:text-text-secondary font-display font-semibold py-3.5 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-amber focus-visible:ring-offset-2 focus-visible:ring-offset-background text-sm tracking-wide"
             >
               {loading ? (
                 <>
-                  <Loader aria-hidden="true" className="w-5 h-5 animate-spin" />
-                  <span>Analyzing URL...</span>
+                  <Loader aria-hidden="true" className="w-4 h-4 animate-spin" />
+                  <span>Analyzing...</span>
                 </>
               ) : (
                 <>
-                  <Zap aria-hidden="true" className="w-5 h-5" />
-                  <span>Analyze URL Security</span>
+                  <Zap aria-hidden="true" className="w-4 h-4" />
+                  <span>Check this link</span>
                 </>
               )}
             </button>
@@ -168,12 +162,11 @@ const SpamLinkChecker = () => {
         {/* Empty State */}
         {!result && !loading && (
           <div
-            className="mb-8 p-6 bg-slate-900/20 backdrop-blur-xl rounded-2xl border border-dashed border-slate-800/50 text-center"
+            className="p-5 bg-surface-raised/50 border border-dashed border-white/5 rounded-lg text-center"
             aria-hidden="true"
           >
-            <Eye className="w-8 h-8 text-slate-500 mx-auto mb-3" />
-            <p className="text-slate-400 text-sm max-w-md mx-auto">
-              Paste a URL above and click Analyze to see security findings, risk level, and recommendations.
+            <p className="text-text-secondary text-xs">
+              Paste a link above. We&rsquo;ll tell you if it&rsquo;s safe &mdash; no sign-up, no spam.
             </p>
           </div>
         )}
@@ -184,7 +177,7 @@ const SpamLinkChecker = () => {
             role="region"
             aria-live="polite"
             aria-label={`Analysis results: ${getStatusText(result.status)}, ${result.confidence}% confidence`}
-            className={`bg-slate-900/40 backdrop-blur-xl rounded-2xl border ${getStatusColor(result.status)} p-4 sm:p-8 shadow-2xl transform transition-all duration-500 animate-fadeIn`}
+            className={`rounded-xl border ${getStatusColor(result.status)} p-5 sm:p-6 transform transition-all duration-500 animate-fadeIn`}
           >
             <StatusBadge status={result.status} confidence={result.confidence} />
 
@@ -195,11 +188,11 @@ const SpamLinkChecker = () => {
                   <Eye aria-hidden="true" className="w-5 h-5" />
                   Key Findings
                 </h4>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {result.reasons.map((reason, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
-                      <div className="w-2 h-2 bg-slate-400 rounded-full mt-2 flex-shrink-0" />
-                      <span className="text-slate-200 text-sm">{reason}</span>
+                    <div key={index} className="flex items-start gap-3 p-3 bg-surface-raised rounded-lg border border-white/5">
+                      <div className="w-1.5 h-1.5 bg-text-secondary rounded-full mt-2 flex-shrink-0" />
+                      <span className="text-sm text-white/80 leading-relaxed">{reason}</span>
                     </div>
                   ))}
                 </div>
@@ -211,11 +204,9 @@ const SpamLinkChecker = () => {
                   <Lock aria-hidden="true" className="w-5 h-5" />
                   Security Recommendation
                 </h4>
-                <div className="p-4 bg-slate-800/30 rounded-lg border border-slate-700/30">
-                  <p className="text-slate-200 mb-4 font-medium">{result.recommendation}</p>
-                  <div className="p-4 bg-slate-700/20 rounded-lg">
-                    <p className="text-sm text-slate-300 leading-relaxed">{result.details}</p>
-                  </div>
+                <div className="p-4 bg-surface-raised rounded-lg border border-white/5 space-y-3">
+                  <p className="text-white font-medium text-sm">{result.recommendation}</p>
+                  <p className="text-sm text-white/60 leading-relaxed">{result.details}</p>
                 </div>
               </div>
             </div>
@@ -236,14 +227,10 @@ const SpamLinkChecker = () => {
       </main>
 
       {/* Footer */}
-      <footer className="relative border-t border-slate-800/50 bg-slate-900/20 backdrop-blur-xl mt-20">
-        <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Shield className="w-5 h-5 text-slate-400" />
-            <span className="text-slate-300 font-medium">Jan Suraksha</span>
-          </div>
-          <p className="text-slate-400 max-w-2xl mx-auto">
-            Stay protected online. Always verify suspicious links and never share sensitive information on untrusted websites.
+      <footer className="border-t border-white/5 mt-20">
+        <div className="max-w-2xl mx-auto px-6 py-10 text-center">
+          <p className="text-text-secondary text-xs leading-relaxed">
+            Before you click, check. Jan Suraksha helps you spot phishing and scam links before they reach your inbox, messages, or browser.
           </p>
         </div>
       </footer>
