@@ -5,7 +5,7 @@ const FeatureCard = ({ icon: Icon, title, description }) => {
         <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 w-fit mb-4 group-hover:bg-slate-700/50 transition-colors">
           <Icon aria-hidden="true" className="w-8 h-8 text-slate-300 group-hover:text-white transition-colors" />
         </div>
-        <h3 className="text-lg font-semibold text-white mb-3">{title}</h3>
+        <h3 className="text-lg font-display font-semibold text-white mb-3 tracking-wide">{title}</h3>
         <p className="text-slate-400 leading-relaxed">{description}</p>
       </div>
     </div>

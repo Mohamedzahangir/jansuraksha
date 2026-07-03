@@ -92,10 +92,10 @@ const SpamLinkChecker = () => {
               <Shield className="w-8 h-8 text-slate-300" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-display font-bold text-white tracking-tight">
                 Jan Suraksha
               </h1>
-              <p className="text-slate-400 text-sm">AI-powered URL security analysis</p>
+              <p className="text-text-secondary text-sm tracking-wide uppercase">check before you click</p>
             </div>
           </div>
         </div>
@@ -105,17 +105,17 @@ const SpamLinkChecker = () => {
       <main className="relative max-w-5xl mx-auto px-4 py-12">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-            Protect Yourself from Malicious Links
+          <h2 className="text-4xl sm:text-5xl font-display font-bold text-white tracking-tight leading-none mb-4">
+            Check any link<br />before you click
           </h2>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-            Advanced AI analysis to detect spam, phishing, and malicious URLs before you click
+          <p className="text-text-secondary text-base max-w-xl mx-auto leading-relaxed">
+            Paste a suspicious URL and get an instant security verdict — not a guess.
           </p>
         </div>
 
         {/* Input Section */}
         <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-slate-800/50 p-4 sm:p-8 mb-8 shadow-2xl">
-          <h3 id="url-form-title" className="text-xl font-semibold mb-6 text-slate-200">Enter URL for Analysis</h3>
+          <h3 id="url-form-title" className="text-lg font-display font-semibold text-white tracking-wide">Enter a URL to check</h3>
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="relative group">
@@ -191,7 +191,7 @@ const SpamLinkChecker = () => {
             <div className="grid lg:grid-cols-2 gap-8">
               {/* Key Findings */}
               <div className="space-y-4">
-                <h4 className="font-semibold text-white text-lg flex items-center gap-2">
+                <h4 className="font-display font-semibold text-white text-lg flex items-center gap-2">
                   <Eye aria-hidden="true" className="w-5 h-5" />
                   Key Findings
                 </h4>
@@ -207,7 +207,7 @@ const SpamLinkChecker = () => {
 
               {/* Recommendation */}
               <div className="space-y-4">
-                <h4 className="font-semibold text-white text-lg flex items-center gap-2">
+                <h4 className="font-display font-semibold text-white text-lg flex items-center gap-2">
                   <Lock aria-hidden="true" className="w-5 h-5" />
                   Security Recommendation
                 </h4>

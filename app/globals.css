@@ -10,6 +10,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-rajdhani);
   --color-amber: #F5A623;
   --color-surface: #16181C;
   --color-surface-raised: #1E2126;

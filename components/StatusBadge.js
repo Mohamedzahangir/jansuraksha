@@ -54,10 +54,10 @@ const StatusBadge = ({ status, confidence, subtitle = 'Security Analysis Complet
           {getStatusIcon(status)}
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-white">
+          <h3 className="text-2xl font-display font-bold text-white tracking-tight">
             {getStatusText(status)}
           </h3>
-          <p className="text-slate-400">{subtitle}</p>
+          <p className="text-text-secondary text-sm">{subtitle}</p>
         </div>
       </div>
 
