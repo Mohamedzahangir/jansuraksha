@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Rajdhani } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,10 +12,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const rajdhani = Rajdhani({
+  variable: "--font-rajdhani",
+  subsets: ["latin", "devanagari"],
+  weight: ["500", "600", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "Jan Suraksha | AI-Powered URL Security Analysis",
+  title: "Jan Suraksha | URL Security Check",
   description:
-    "Analyze suspicious links before you click. Jan Suraksha uses AI to detect spam, phishing, and malicious URLs in real time.",
+    "Check any suspicious link before you click. Jan Suraksha uses AI to detect phishing, spam, and malicious URLs.",
 };
 
 export default function RootLayout({
@@ -26,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${rajdhani.variable} antialiased`}
       >
         {children}
       </body>
