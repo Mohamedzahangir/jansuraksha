@@ -4,11 +4,11 @@ import { validateAndSanitizeUrl } from './lib/validation.js';
 import { parseAiResponse } from './lib/parse.js';
 import { serviceUnavailableFallback, emptyResponseFallback } from './lib/fallbacks.js';
 import { checkRateLimit, getClientIp } from './lib/rateLimit.js';
-import { getCachedResult, setCachedResult } from './lib/cache.js';
+import { getCachedResult, setCachedResult, cacheStats } from './lib/cache.js';
+import { analyzeWithOpenRouter, OPENROUTER_MODEL } from './lib/openrouter.js';
 export const runtime = 'edge';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // System prompt for URL analysis
 const SYSTEM_PROMPT = `You are a cybersecurity expert specializing in URL analysis and spam detection. Analyze the provided URL and determine if it's potentially spam, malicious, or safe.
@@ -62,7 +62,8 @@ export async function POST(request) {
     }
 
     // Validate and sanitize the URL
-    const { ok, url, error } = validateAndSanitizeUrl(body?.url);    if (!ok) {
+    const { ok, url, error } = validateAndSanitizeUrl(body?.url);
+    if (!ok) {
       logger.warn('URL validation failed', { url: body?.url, error });
       return NextResponse.json({ error }, { status: 400 });
     }
@@ -83,7 +84,12 @@ export async function POST(request) {
 
     logger.info('Calling OpenRouter API');
 
-    const analysisText = await analyzeWithOpenRouter(url);
+    const analysisText = await analyzeWithOpenRouter(
+      SYSTEM_PROMPT,
+      url,
+      OPENROUTER_API_KEY,
+      process.env.NEXT_PUBLIC_APP_URL
+    );
 
     let result;
     if (analysisText === null) {
@@ -119,73 +125,13 @@ export async function POST(request) {
   }
 }
 
-// Calls the OpenRouter API and returns:
-//  - null when the request failed (network or HTTP error)
-//  - an empty string when the response contained no analysis
-//  - the raw analysis text otherwise
-async function analyzeWithOpenRouter(url) {
-  const userPrompt = `Analyze this URL for spam/malicious content: ${url}
-
-Please perform a comprehensive security analysis considering:
-- Domain legitimacy and reputation
-- URL structure and potential redirects
-- SSL certificate status
-- Known threat indicators
-- Phishing/spam patterns
-- Business legitimacy signals
-
-Provide your analysis in the specified JSON format.`;
-
-  let apiResponse;
-  try {
-    apiResponse = await fetch(OPENROUTER_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-        'X-Title': 'Spam Link Checker',
-      },
-      body: JSON.stringify({
-        model: 'deepseek/deepseek-chat-v3.1:freee', // Using faster/cheaper model for testing
-        messages: [
-          {
-            role: 'system',
-            content: SYSTEM_PROMPT
-          },
-          {
-            role: 'user',
-            content: userPrompt
-          }
-        ],
-        max_tokens: 800,
-        temperature: 0.1,
-      }),
-    });
-  } catch (fetchError) {
-    logger.error('Network error calling OpenRouter', fetchError);
-    return null;
-  }
-
-  if (!apiResponse.ok) {
-    const errorText = await apiResponse.text();
-    logger.error('OpenRouter API error', {
-      status: apiResponse.status,
-      statusText: apiResponse.statusText,
-      error: errorText
-    });
-    return null;
-  }
-
-  const completion = await apiResponse.json();
-  return completion.choices?.[0]?.message?.content ?? '';
-}
-
 // Add GET handler for testing
 export async function GET() {
-  return NextResponse.json({ 
+  return NextResponse.json({
     message: 'URL Analysis API is running',
     timestamp: new Date().toISOString(),
-    hasApiKey: !!OPENROUTER_API_KEY
+    hasApiKey: !!OPENROUTER_API_KEY,
+    model: OPENROUTER_MODEL,
+    cache: cacheStats(),
   });
 }
