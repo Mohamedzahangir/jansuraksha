@@ -4,6 +4,7 @@ import { validateAndSanitizeUrl } from './lib/validation.js';
 import { parseAiResponse } from './lib/parse.js';
 import { serviceUnavailableFallback, emptyResponseFallback } from './lib/fallbacks.js';
 import { checkRateLimit, getClientIp } from './lib/rateLimit.js';
+import { getCachedResult, setCachedResult } from './lib/cache.js';
 export const runtime = 'edge';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -74,6 +75,12 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Server configuration error: API key missing' }, { status: 500 });
     }
 
+    const cached = getCachedResult(url);
+    if (cached) {
+      logger.info('Cache hit', { url });
+      return NextResponse.json({ ...cached, cached: true });
+    }
+
     logger.info('Calling OpenRouter API');
 
     const analysisText = await analyzeWithOpenRouter(url);
@@ -86,6 +93,8 @@ export async function POST(request) {
     } else {
       result = parseAiResponse(analysisText, url);
     }
+
+    setCachedResult(url, result);
 
     logger.info('Analysis completed', { url, status: result.status, confidence: result.confidence });
 
