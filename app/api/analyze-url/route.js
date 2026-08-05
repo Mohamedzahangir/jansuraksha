@@ -3,6 +3,7 @@ import { logger } from './lib/logger.js';
 import { validateAndSanitizeUrl } from './lib/validation.js';
 import { parseAiResponse } from './lib/parse.js';
 import { serviceUnavailableFallback, emptyResponseFallback } from './lib/fallbacks.js';
+import { checkRateLimit, getClientIp } from './lib/rateLimit.js';
 export const runtime = 'edge';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -32,6 +33,22 @@ Be thorough but concise. Focus on actionable security insights. Ensure the confi
 
 export async function POST(request) {
   logger.info('API route called');
+
+  const rateLimit = checkRateLimit(getClientIp(request));
+  if (!rateLimit.allowed) {
+    const retryAfter = Math.ceil(rateLimit.resetInMs / 1000);
+    logger.warn('Rate limit exceeded', { retryAfter });
+    return NextResponse.json(
+      { error: `Too many requests. Try again in ${retryAfter} seconds.` },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(retryAfter),
+          'X-RateLimit-Remaining': '0',
+        },
+      }
+    );
+  }
 
   try {
     // Parse request body
