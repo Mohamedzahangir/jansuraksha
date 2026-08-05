@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { logger } from './lib/logger.js';
+import { validateAndSanitizeUrl } from './lib/validation.js';
 export const runtime = 'edge';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -27,36 +29,30 @@ Respond ONLY with a valid JSON object containing:
 Be thorough but concise. Focus on actionable security insights. Ensure the confidence score reflects the certainty of your analysis.`;
 
 export async function POST(request) {
-  console.log('API route called'); // Debug log
-  
+  logger.info('API route called');
+
   try {
     // Parse request body
     let body;
     try {
       body = await request.json();
     } catch (parseError) {
-      console.error('Request parsing error:', parseError);
+      logger.error('Request parsing error', parseError);
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    const { url } = body;
-    console.log('Analyzing URL:', url); // Debug log
-
-    if (!url) {
-      return NextResponse.json({ error: 'URL is required' }, { status: 400 });
+    // Validate and sanitize the URL
+    const { ok, url, error } = validateAndSanitizeUrl(body?.url);
+    if (!ok) {
+      logger.warn('URL validation failed', { url: body?.url, error });
+      return NextResponse.json({ error }, { status: 400 });
     }
 
-    // Validate URL format
-    try {
-      new URL(url);
-    } catch (urlError) {
-      console.error('URL validation error:', urlError);
-      return NextResponse.json({ error: 'Invalid URL format. Please include http:// or https://' }, { status: 400 });
-    }
+    logger.info('Analyzing URL', { url });
 
     // Check API key
     if (!OPENROUTER_API_KEY) {
-      console.error('OpenRouter API key not found');
+      logger.error('OpenRouter API key not found');
       return NextResponse.json({ error: 'Server configuration error: API key missing' }, { status: 500 });
     }
 
@@ -73,7 +69,7 @@ Please perform a comprehensive security analysis considering:
 
 Provide your analysis in the specified JSON format.`;
 
-    console.log('Calling OpenRouter API...'); // Debug log
+    logger.info('Calling OpenRouter API');
 
     // Call OpenRouter API
     const apiResponse = await fetch(OPENROUTER_URL, {
@@ -101,11 +97,11 @@ Provide your analysis in the specified JSON format.`;
       }),
     });
 
-    console.log('OpenRouter response status:', apiResponse.status); // Debug log
+    logger.info('OpenRouter response status', { status: apiResponse.status });
 
     if (!apiResponse.ok) {
       const errorText = await apiResponse.text();
-      console.error('OpenRouter API error:', {
+      logger.error('OpenRouter API error', {
         status: apiResponse.status,
         statusText: apiResponse.statusText,
         error: errorText
@@ -127,12 +123,11 @@ Provide your analysis in the specified JSON format.`;
     }
 
     const completion = await apiResponse.json();
-    console.log('OpenRouter response:', completion); // Debug log
-    
+
     const analysisText = completion.choices?.[0]?.message?.content;
 
     if (!analysisText) {
-      console.error('No content in OpenRouter response');
+      logger.warn('No content in OpenRouter response');
       // Return fallback response
       return NextResponse.json({
         status: 'suspicious',
@@ -159,11 +154,9 @@ Provide your analysis in the specified JSON format.`;
         .replace(/[^}]*$/, '') // Remove any text after the last }
         .trim();
       
-      console.log('Cleaned AI response:', cleanedResponse); // Debug log
-      
       analysisResult = JSON.parse(cleanedResponse);
     } catch (parseError) {
-      console.error('JSON parsing error:', parseError, 'Original text:', analysisText);
+      logger.error('JSON parsing error', parseError, 'Original text:', analysisText);
       
       // Extract information using regex as fallback
       const statusMatch = analysisText.match(/"status":\s*"(safe|suspicious|dangerous)"/);
@@ -210,12 +203,12 @@ Provide your analysis in the specified JSON format.`;
       analysisResult.details = 'Comprehensive security analysis has been completed. Please review the findings and recommendations above.';
     }
 
-    console.log('Final analysis result:', analysisResult); // Debug log
+    logger.info('Final analysis result', analysisResult);
 
     return NextResponse.json(analysisResult);
 
   } catch (error) {
-    console.error('Unexpected error:', error);
+    logger.error('Unexpected error', error);
     
     // Return a safe fallback response
     return NextResponse.json({
