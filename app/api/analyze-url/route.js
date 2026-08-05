@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { logger } from './lib/logger.js';
 import { validateAndSanitizeUrl } from './lib/validation.js';
+import { parseAiResponse } from './lib/parse.js';
+import { serviceUnavailableFallback, emptyResponseFallback } from './lib/fallbacks.js';
 export const runtime = 'edge';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -42,8 +44,7 @@ export async function POST(request) {
     }
 
     // Validate and sanitize the URL
-    const { ok, url, error } = validateAndSanitizeUrl(body?.url);
-    if (!ok) {
+    const { ok, url, error } = validateAndSanitizeUrl(body?.url);    if (!ok) {
       logger.warn('URL validation failed', { url: body?.url, error });
       return NextResponse.json({ error }, { status: 400 });
     }
@@ -56,8 +57,48 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Server configuration error: API key missing' }, { status: 500 });
     }
 
-    // Create the user prompt
-    const userPrompt = `Analyze this URL for spam/malicious content: ${url}
+    logger.info('Calling OpenRouter API');
+
+    const analysisText = await analyzeWithOpenRouter(url);
+
+    let result;
+    if (analysisText === null) {
+      result = serviceUnavailableFallback(url);
+    } else if (analysisText.trim().length === 0) {
+      result = emptyResponseFallback(url);
+    } else {
+      result = parseAiResponse(analysisText, url);
+    }
+
+    logger.info('Analysis completed', { url, status: result.status, confidence: result.confidence });
+
+    return NextResponse.json(result);
+
+  } catch (error) {
+    logger.error('Unexpected error', error);
+    
+    // Return a safe fallback response
+    return NextResponse.json({
+      status: 'suspicious',
+      confidence: 50,
+      reasons: [
+        'Technical error occurred during analysis',
+        'Unable to complete full security assessment',
+        'Default security protocols applied',
+        'Manual verification strongly recommended'
+      ],
+      recommendation: 'Do not visit this URL until manually verified',
+      details: 'A technical error prevented complete analysis of this URL. For your safety, treat this link as potentially suspicious until verified through other means.'
+    }, { status: 200 }); // Return 200 with error info instead of 500
+  }
+}
+
+// Calls the OpenRouter API and returns:
+//  - null when the request failed (network or HTTP error)
+//  - an empty string when the response contained no analysis
+//  - the raw analysis text otherwise
+async function analyzeWithOpenRouter(url) {
+  const userPrompt = `Analyze this URL for spam/malicious content: ${url}
 
 Please perform a comprehensive security analysis considering:
 - Domain legitimacy and reputation
@@ -69,10 +110,9 @@ Please perform a comprehensive security analysis considering:
 
 Provide your analysis in the specified JSON format.`;
 
-    logger.info('Calling OpenRouter API');
-
-    // Call OpenRouter API
-    const apiResponse = await fetch(OPENROUTER_URL, {
+  let apiResponse;
+  try {
+    apiResponse = await fetch(OPENROUTER_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
@@ -96,134 +136,23 @@ Provide your analysis in the specified JSON format.`;
         temperature: 0.1,
       }),
     });
-
-    logger.info('OpenRouter response status', { status: apiResponse.status });
-
-    if (!apiResponse.ok) {
-      const errorText = await apiResponse.text();
-      logger.error('OpenRouter API error', {
-        status: apiResponse.status,
-        statusText: apiResponse.statusText,
-        error: errorText
-      });
-      
-      // Return a fallback response for testing
-      return NextResponse.json({
-        status: 'suspicious',
-        confidence: 75,
-        reasons: [
-          'Unable to connect to AI analysis service',
-          'Using fallback security assessment',
-          'Domain appears to be accessible',
-          'Manual verification recommended'
-        ],
-        recommendation: 'Exercise caution and verify the link manually',
-        details: 'The AI analysis service is temporarily unavailable. This URL has been given a default suspicious rating for safety. Please verify manually before visiting.'
-      });
-    }
-
-    const completion = await apiResponse.json();
-
-    const analysisText = completion.choices?.[0]?.message?.content;
-
-    if (!analysisText) {
-      logger.warn('No content in OpenRouter response');
-      // Return fallback response
-      return NextResponse.json({
-        status: 'suspicious',
-        confidence: 60,
-        reasons: [
-          'AI analysis service returned empty response',
-          'Using default security protocols',
-          'URL structure appears standard',
-          'Recommend manual verification'
-        ],
-        recommendation: 'Proceed with caution',
-        details: 'The analysis service did not return detailed results. Please verify this URL through other means before visiting.'
-      });
-    }
-
-    // Parse JSON response from AI
-    let analysisResult;
-    try {
-      // Clean the response in case there are markdown code blocks
-      const cleanedResponse = analysisText
-        .replace(/```json\n?/g, '')
-        .replace(/\n?```/g, '')
-        .replace(/^[^{]*/, '') // Remove any text before the first {
-        .replace(/[^}]*$/, '') // Remove any text after the last }
-        .trim();
-      
-      analysisResult = JSON.parse(cleanedResponse);
-    } catch (parseError) {
-      logger.error('JSON parsing error', parseError, 'Original text:', analysisText);
-      
-      // Extract information using regex as fallback
-      const statusMatch = analysisText.match(/"status":\s*"(safe|suspicious|dangerous)"/);
-      const confidenceMatch = analysisText.match(/"confidence":\s*(\d+)/);
-      
-      analysisResult = {
-        status: statusMatch ? statusMatch[1] : 'suspicious',
-        confidence: confidenceMatch ? parseInt(confidenceMatch[1]) : 70,
-        reasons: [
-          'AI analysis completed successfully',
-          'Response format required cleanup',
-          'Security assessment provided',
-          'Manual review recommended for accuracy'
-        ],
-        recommendation: 'Review the analysis and proceed with appropriate caution',
-        details: 'The AI provided analysis but in a non-standard format. The security assessment has been processed but may require manual verification.'
-      };
-    }
-
-    // Validate and sanitize the response structure
-    const validStatuses = ['safe', 'suspicious', 'dangerous'];
-    if (!validStatuses.includes(analysisResult.status)) {
-      analysisResult.status = 'suspicious';
-    }
-    
-    if (!analysisResult.confidence || analysisResult.confidence < 1 || analysisResult.confidence > 100) {
-      analysisResult.confidence = 70;
-    }
-    
-    if (!Array.isArray(analysisResult.reasons) || analysisResult.reasons.length === 0) {
-      analysisResult.reasons = [
-        'URL structure analysis completed',
-        'Security indicators checked',
-        'Domain reputation assessed',
-        'Safety recommendation provided'
-      ];
-    }
-    
-    if (!analysisResult.recommendation) {
-      analysisResult.recommendation = 'Proceed with appropriate security measures';
-    }
-    
-    if (!analysisResult.details) {
-      analysisResult.details = 'Comprehensive security analysis has been completed. Please review the findings and recommendations above.';
-    }
-
-    logger.info('Final analysis result', analysisResult);
-
-    return NextResponse.json(analysisResult);
-
-  } catch (error) {
-    logger.error('Unexpected error', error);
-    
-    // Return a safe fallback response
-    return NextResponse.json({
-      status: 'suspicious',
-      confidence: 50,
-      reasons: [
-        'Technical error occurred during analysis',
-        'Unable to complete full security assessment',
-        'Default security protocols applied',
-        'Manual verification strongly recommended'
-      ],
-      recommendation: 'Do not visit this URL until manually verified',
-      details: 'A technical error prevented complete analysis of this URL. For your safety, treat this link as potentially suspicious until verified through other means.'
-    }, { status: 200 }); // Return 200 with error info instead of 500
+  } catch (fetchError) {
+    logger.error('Network error calling OpenRouter', fetchError);
+    return null;
   }
+
+  if (!apiResponse.ok) {
+    const errorText = await apiResponse.text();
+    logger.error('OpenRouter API error', {
+      status: apiResponse.status,
+      statusText: apiResponse.statusText,
+      error: errorText
+    });
+    return null;
+  }
+
+  const completion = await apiResponse.json();
+  return completion.choices?.[0]?.message?.content ?? '';
 }
 
 // Add GET handler for testing
